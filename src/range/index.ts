@@ -1,4 +1,4 @@
-import { getDigit, getListItem, getToken, is, VCHAR } from "../string-parsers";
+import { getDigits, getListItem, getToken, is, VCHAR } from "../string-parsers";
 
 interface IntRange {
   type: "int";
@@ -49,7 +49,7 @@ export function parseRange(value: string): RangesSpecifier | null {
 
     value = value.slice(rangeSpec.length + 1);
 
-    const firstPos = getDigit(rangeSpec);
+    const firstPos = getDigits(rangeSpec);
 
     let rest = rangeSpec.slice(firstPos.length);
 
@@ -60,7 +60,7 @@ export function parseRange(value: string): RangesSpecifier | null {
 
     rest = rest.slice(1);
 
-    const lastPosOrSuffix = getDigit(rest);
+    const lastPosOrSuffix = getDigits(rest);
 
     rest = rest.slice(lastPosOrSuffix.length);
 

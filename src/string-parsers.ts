@@ -14,7 +14,7 @@ export function sliceWhile(input: string, match: (c: string) => boolean) {
   return r;
 }
 
-export function getDigit(input: string): string {
+export function getDigits(input: string): string {
   return sliceWhile(input, (c) => DIGIT.includes(c));
 }
 
