@@ -23,7 +23,13 @@ interface RangesSpecifier {
   rangeSet: RangeSpec[];
 }
 
-function parseList<T>(input: string, parseItem: (item: string) => T): T[] | null {
+export class MalformedRange extends Error {
+  constructor() {
+    super("Range header value has invalid syntax");
+  }
+}
+
+function parseList<T>(input: string, parseItem: (item: string) => T): T[] {
   const parsedItems: T[] = [];
 
   while (input) {
@@ -39,14 +45,14 @@ function parseList<T>(input: string, parseItem: (item: string) => T): T[] | null
 
     if (input.length === 0) {
       if (trailingOws.length > 0) {
-        return null;
+        throw new MalformedRange();
       }
 
       continue;
     }
 
     if (input[0] !== ",") {
-      return null;
+      throw new MalformedRange();
     }
 
     input = input.slice(1);
@@ -55,28 +61,28 @@ function parseList<T>(input: string, parseItem: (item: string) => T): T[] | null
     input = input.slice(leadingOws.length);
 
     if (input.length == 0 && leadingOws.length > 0) {
-      return null;
+      throw new MalformedRange();
     }
   }
 
   return parsedItems;
 }
 
-export function parseRange(value: string): RangesSpecifier | null {
+export function parseRange(value: string): RangesSpecifier {
   const unit = getToken(value);
   if (!unit) {
-    return null;
+    throw new MalformedRange();
   }
 
   value = value.slice(unit.length);
 
   if (value[0] !== "=") {
-    return null;
+    throw new MalformedRange();
   }
 
   value = value.slice(1);
 
-  const rangeSet = parseList<RangeSpec | null>(value, function (item) {
+  const rangeSet = parseList<RangeSpec>(value, function (item) {
     const firstPos = getDigits(item);
     item = item.slice(firstPos.length);
 
@@ -109,18 +115,14 @@ export function parseRange(value: string): RangesSpecifier | null {
     const last = parseInt(lastPosOrLength);
 
     if (last < first) {
-      return null;
+      throw new MalformedRange();
     }
 
     return { type: "int", first, last };
   });
 
-  if (
-    rangeSet === null ||
-    rangeSet.length === 0 ||
-    !rangeSet.every((rangeSpec) => rangeSpec !== null)
-  ) {
-    return null;
+  if (rangeSet.length === 0) {
+    throw new MalformedRange();
   }
 
   return { unit, rangeSet };
