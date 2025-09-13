@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "test": "ts-node ./src/**/spec.ts"
+  },
+  "dependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "ts-node": "^10.9.2"
+  }
+}
