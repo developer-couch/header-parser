@@ -25,7 +25,9 @@ interface RangesSpecifier {
 
 export class MalformedRange extends Error {
   constructor() {
-    super("Range header value has invalid syntax");
+    super(
+      "Range header value is malformed. Syntax must conform to the specification defined at https://www.rfc-editor.org/rfc/rfc9110.html#name-range."
+    );
   }
 }
 
