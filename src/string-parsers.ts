@@ -2,10 +2,7 @@ export const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 export const DIGIT = "0123456789";
 export const TCHAR = ALPHA + DIGIT + "!#$%&'*+-.^_`|~";
 export const VCHAR = TCHAR + '"(),/:;<=>?@[\\]{}';
-
-export function is(input: string, valid: string) {
-  return [...input].every((c) => valid.includes(c));
-}
+export const WSP = " \t";
 
 export function sliceWhile(input: string, match: (c: string) => boolean) {
   let r = "",
@@ -22,6 +19,10 @@ export function getToken(input: string): string {
   return sliceWhile(input, (c) => TCHAR.includes(c));
 }
 
-export function getListItem(input: string): string {
-  return sliceWhile(input, (c) => c !== ",");
+export function getWsp(input: string): string {
+  return sliceWhile(input, (c) => WSP.includes(c));
+}
+
+export function getVchar(input: string): string {
+  return sliceWhile(input, (c) => VCHAR.includes(c));
 }

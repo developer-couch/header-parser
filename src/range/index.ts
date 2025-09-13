@@ -1,4 +1,4 @@
-import { getDigits, getListItem, getToken, is, VCHAR } from "../string-parsers";
+import { getDigits, getToken, getVchar, getWsp, sliceWhile, VCHAR } from "../string-parsers";
 
 interface IntRange {
   type: "int";
@@ -35,19 +35,31 @@ export function parseRange(value: string): RangesSpecifier | null {
 
   value = value.slice(1);
 
-  if (!value) {
-    return null;
-  }
-
   const rangeSet: RangesSpecifier["rangeSet"] = [];
 
   while (value) {
-    const rangeSpec = getListItem(value);
-    if (!rangeSpec || !is(rangeSpec, VCHAR)) {
+    const rangeSpec = sliceWhile(value, (c) => VCHAR.includes(c) && c !== ",");
+    value = value.slice(rangeSpec.length);
+
+    const trailingOws = getWsp(value);
+    value = value.slice(trailingOws.length);
+
+    if (value.length === 0 && trailingOws.length > 0) {
       return null;
     }
 
-    value = value.slice(rangeSpec.length + 1);
+    if (value.length > 0 && value[0] !== ",") {
+      return null;
+    }
+
+    value = value.slice(1);
+
+    const leadingOws = getWsp(value);
+    value = value.slice(leadingOws.length);
+
+    if (rangeSpec.length === 0) {
+      continue;
+    }
 
     const firstPos = getDigits(rangeSpec);
 
@@ -60,38 +72,42 @@ export function parseRange(value: string): RangesSpecifier | null {
 
     rest = rest.slice(1);
 
-    const lastPosOrSuffix = getDigits(rest);
+    const lastPosOrLength = getDigits(rest);
 
-    rest = rest.slice(lastPosOrSuffix.length);
+    rest = rest.slice(lastPosOrLength.length);
 
     if (rest) {
       rangeSet.push({ type: "other", spec: rangeSpec });
       continue;
     }
 
-    if (!firstPos && !lastPosOrSuffix) {
+    if (!firstPos && !lastPosOrLength) {
       rangeSet.push({ type: "other", spec: rangeSpec });
       continue;
     }
 
     if (!firstPos) {
-      rangeSet.push({ type: "suffix", length: parseInt(lastPosOrSuffix) });
+      rangeSet.push({ type: "suffix", length: parseInt(lastPosOrLength) });
       continue;
     }
 
-    if (!lastPosOrSuffix) {
+    if (!lastPosOrLength) {
       rangeSet.push({ type: "int", first: parseInt(firstPos), last: null });
       continue;
     }
 
     const first = parseInt(firstPos);
-    const last = parseInt(lastPosOrSuffix);
+    const last = parseInt(lastPosOrLength);
 
     if (last < first) {
       return null;
     }
 
     rangeSet.push({ type: "int", first, last });
+  }
+
+  if (rangeSet.length === 0) {
+    return null;
   }
 
   return { unit, rangeSet };

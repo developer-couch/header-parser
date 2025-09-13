@@ -34,8 +34,41 @@ test("returns null if no ranges are specified", () => {
   assert.equal(range, null);
 });
 
-test("returns null if an empty range is specified", () => {
+test("ignores empty ranges", () => {
   const range = parseRange("bytes=20-100,,40-50,-80,-10,other-range?(123,another-range123df:[]");
+  assert.deepEqual(range, {
+    unit: "bytes",
+    rangeSet: [
+      { type: "int", first: 20, last: 100 },
+      { type: "int", first: 40, last: 50 },
+      { type: "suffix", length: 80 },
+      { type: "suffix", length: 10 },
+      { type: "other", spec: "other-range?(123" },
+      { type: "other", spec: "another-range123df:[]" },
+    ],
+  });
+});
+
+test("ignores optional white spaces", () => {
+  const range = parseRange("bytes=,20-100 , 40-50, -80 ,, ,  ,\t30-50\t,\t");
+  assert.deepEqual(range, {
+    unit: "bytes",
+    rangeSet: [
+      { type: "int", first: 20, last: 100 },
+      { type: "int", first: 40, last: 50 },
+      { type: "suffix", length: 80 },
+      { type: "int", first: 30, last: 50 },
+    ],
+  });
+});
+
+test("returns null if range set starts with white spaces", () => {
+  const range = parseRange("bytes= 20-100");
+  assert.equal(range, null);
+});
+
+test("returns null if range set ends with white spaces", () => {
+  const range = parseRange("bytes=20-100 ");
   assert.equal(range, null);
 });
 
