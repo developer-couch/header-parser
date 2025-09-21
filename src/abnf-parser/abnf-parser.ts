@@ -67,6 +67,11 @@ export function alternatives(...rules: ABNFRule[]): ABNFRule {
   };
 }
 
+export function rangeAlternatives(from: number, to: number): ABNFRule {
+  const rules = new Array(to - from + 1).fill(null).map((_, i) => terminal(from + i));
+  return alternatives(...rules);
+}
+
 export function repetition(rule: ABNFRule, min = 0, max = Infinity): ABNFRule {
   return {
     parse(input) {

@@ -1,7 +1,15 @@
 import { test } from "node:test";
 import { deepEqual } from "node:assert/strict";
 
-import { alternatives, concatenate, literal, optional, repetition, terminal } from "./abnf-parser";
+import {
+  alternatives,
+  concatenate,
+  literal,
+  optional,
+  rangeAlternatives,
+  repetition,
+  terminal,
+} from "./abnf-parser";
 
 test("terminal", function () {
   const rule = terminal(0x61);
@@ -158,6 +166,17 @@ test("alternative empty concatenates", function () {
 
   deepEqual(rule.parse(""), { result: "", rest: "" });
   deepEqual(rule.parse("abc"), { result: "", rest: "abc" });
+});
+
+test("range alternatives", function () {
+  const rule = rangeAlternatives(0x61, 0x63);
+
+  deepEqual(rule.parse("a"), { result: "a", rest: "" });
+  deepEqual(rule.parse("b"), { result: "b", rest: "" });
+  deepEqual(rule.parse("c"), { result: "c", rest: "" });
+  deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
+  deepEqual(rule.parse(""), null);
+  deepEqual(rule.parse("d"), null);
 });
 
 test("repetition", function () {
