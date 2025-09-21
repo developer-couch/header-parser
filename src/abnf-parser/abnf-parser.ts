@@ -1,12 +1,14 @@
-import { deepEqual } from "assert/strict";
-
-type Result = string | { [K in string]: Result };
+type Result = string | { [name: string]: Result } | Result[];
 
 type ABNFRule = { parse(input: string): { result: Result; rest: string } | null };
 
 export function terminal(value: number): ABNFRule {
   return {
     parse(input) {
+      if (input.length === 0) {
+        return null;
+      }
+
       if (input.codePointAt(0) !== value) {
         return null;
       }
@@ -105,12 +107,8 @@ export function repetition(rule: ABNFRule, min = 0, max = Infinity): ABNFRule {
 
       const result =
         typeof firstResult.result === "object"
-          ? typeof nextResult.result === "object"
-            ? { ...firstResult.result, ...nextResult.result }
-            : firstResult.result
-          : typeof nextResult.result === "object"
-            ? nextResult.result
-            : firstResult.result + nextResult.result;
+          ? [firstResult.result, ...(nextResult.result as Result[])]
+          : firstResult.result + (nextResult.result as string);
 
       return { result: result, rest: nextResult.rest };
     },

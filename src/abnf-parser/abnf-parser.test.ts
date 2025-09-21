@@ -262,4 +262,14 @@ test("named", function () {
     ).parse("abd"),
     { result: { test: { test: "b" } }, rest: "" }
   );
+
+  deepEqual(named("test", repetition(terminal(0x61))).parse("aaaa"), {
+    result: { test: "aaaa" },
+    rest: "",
+  });
+
+  deepEqual(named("test", repetition(named("test", terminal(0x61)))).parse("aaaa"), {
+    result: { test: [{ test: "a" }, { test: "a" }, { test: "a" }, { test: "a" }] },
+    rest: "",
+  });
 });
