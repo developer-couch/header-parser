@@ -1,9 +1,7 @@
 import { deepEqual } from "assert/strict";
 import { DIGIT } from "../string-parsers";
 
-type Result = string | Result[];
-
-type ABNFRule = { parse(input: string): { result: Result; rest: string } | null };
+type ABNFRule = { parse(input: string): { result: string; rest: string } | null };
 
 export function terminal(value: number): ABNFRule {
   return {
@@ -25,7 +23,7 @@ export function concatenate(...rules: ABNFRule[]): ABNFRule {
     parse(input) {
       const firstRule = rules[0];
       if (firstRule === undefined) {
-        return { result: [], rest: input };
+        return { result: "", rest: input };
       }
 
       const firstResult = firstRule.parse(input);
@@ -39,7 +37,7 @@ export function concatenate(...rules: ABNFRule[]): ABNFRule {
       }
 
       return {
-        result: [firstResult.result, ...nextResult.result],
+        result: firstResult.result + nextResult.result,
         rest: nextResult.rest,
       };
     },
@@ -73,7 +71,7 @@ export function repetition(rule: ABNFRule, min = 0, max = Infinity): ABNFRule {
   return {
     parse(input) {
       if (max <= 0) {
-        return { result: [], rest: input };
+        return { result: "", rest: input };
       }
 
       const firstResult = rule.parse(input);
@@ -82,7 +80,7 @@ export function repetition(rule: ABNFRule, min = 0, max = Infinity): ABNFRule {
           return null;
         }
 
-        return { result: [], rest: input };
+        return { result: "", rest: input };
       }
 
       const nextResult = repetition(rule, min - 1, max - 1).parse(firstResult.rest);
@@ -90,7 +88,7 @@ export function repetition(rule: ABNFRule, min = 0, max = Infinity): ABNFRule {
         return null;
       }
 
-      return { result: [firstResult.result, ...nextResult.result], rest: nextResult.rest };
+      return { result: firstResult.result + nextResult.result, rest: nextResult.rest };
     },
   };
 }
