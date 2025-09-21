@@ -92,3 +92,7 @@ export function repetition(rule: ABNFRule, min = 0, max = Infinity): ABNFRule {
     },
   };
 }
+
+export function optional(rule: ABNFRule): ABNFRule {
+  return repetition(rule, 0, 1);
+}

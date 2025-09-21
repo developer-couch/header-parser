@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import { deepEqual } from "node:assert/strict";
 
-import { alternatives, concatenate, literal, repetition, terminal } from "./abnf-parser";
+import { alternatives, concatenate, literal, optional, repetition, terminal } from "./abnf-parser";
 
 test("terminal", function () {
   const rule = terminal(0x61);
@@ -211,4 +211,14 @@ test("exact repetition", function () {
   deepEqual(rule.parse("aaa"), { result: "aaa", rest: "" });
   deepEqual(rule.parse("aaaa"), { result: "aaa", rest: "a" });
   deepEqual(rule.parse("aa"), null);
+});
+
+test("optional", function () {
+  const rule = optional(terminal(0x61));
+
+  deepEqual(rule.parse("a"), { result: "a", rest: "" });
+  deepEqual(rule.parse("aa"), { result: "a", rest: "a" });
+  deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
+  deepEqual(rule.parse(""), { result: "", rest: "" });
+  deepEqual(rule.parse("b"), { result: "", rest: "b" });
 });
