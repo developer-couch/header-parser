@@ -5,6 +5,7 @@ import {
   alternatives,
   concatenate,
   literal,
+  named,
   optional,
   rangeAlternatives,
   repetition,
@@ -240,4 +241,25 @@ test("optional", function () {
   deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
   deepEqual(rule.parse(""), { result: "", rest: "" });
   deepEqual(rule.parse("b"), { result: "", rest: "b" });
+});
+
+test("named", function () {
+  deepEqual(named("a", terminal(0x61)).parse("a"), { result: { a: "a" }, rest: "" });
+
+  deepEqual(
+    named("test", concatenate(terminal(0x61), terminal(0x62), terminal(0x63))).parse("abc"),
+    { result: { test: "abc" }, rest: "" }
+  );
+
+  deepEqual(
+    named(
+      "test",
+      concatenate(
+        terminal(0x61),
+        named("test", alternatives(terminal(0x62), terminal(0x63))),
+        terminal(0x64)
+      )
+    ).parse("abd"),
+    { result: { test: { test: "b" } }, rest: "" }
+  );
 });

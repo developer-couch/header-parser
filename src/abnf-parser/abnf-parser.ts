@@ -1,7 +1,8 @@
 import { deepEqual } from "assert/strict";
-import { DIGIT } from "../string-parsers";
 
-type ABNFRule = { parse(input: string): { result: string; rest: string } | null };
+type Result = string | { [K in string]: Result };
+
+type ABNFRule = { parse(input: string): { result: Result; rest: string } | null };
 
 export function terminal(value: number): ABNFRule {
   return {
@@ -36,8 +37,17 @@ export function concatenate(...rules: ABNFRule[]): ABNFRule {
         return null;
       }
 
+      const result =
+        typeof firstResult.result === "object"
+          ? typeof nextResult.result === "object"
+            ? { ...firstResult.result, ...nextResult.result }
+            : firstResult.result
+          : typeof nextResult.result === "object"
+            ? nextResult.result
+            : firstResult.result + nextResult.result;
+
       return {
-        result: firstResult.result + nextResult.result,
+        result: result,
         rest: nextResult.rest,
       };
     },
@@ -93,11 +103,33 @@ export function repetition(rule: ABNFRule, min = 0, max = Infinity): ABNFRule {
         return null;
       }
 
-      return { result: firstResult.result + nextResult.result, rest: nextResult.rest };
+      const result =
+        typeof firstResult.result === "object"
+          ? typeof nextResult.result === "object"
+            ? { ...firstResult.result, ...nextResult.result }
+            : firstResult.result
+          : typeof nextResult.result === "object"
+            ? nextResult.result
+            : firstResult.result + nextResult.result;
+
+      return { result: result, rest: nextResult.rest };
     },
   };
 }
 
 export function optional(rule: ABNFRule): ABNFRule {
   return repetition(rule, 0, 1);
+}
+
+export function named(name: string, rule: ABNFRule): ABNFRule {
+  return {
+    parse(input) {
+      const result = rule.parse(input);
+      if (result === null) {
+        return null;
+      }
+
+      return { result: { [name]: result.result }, rest: result.rest };
+    },
+  };
 }
