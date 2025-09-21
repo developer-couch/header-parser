@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "ts-node ./src/**/spec.ts"
+    "test": "node --require ts-node/register --test ./src/abnf-parser/*.test.ts"
   },
   "dependencies": {
     "prettier": "^3.6.2",
