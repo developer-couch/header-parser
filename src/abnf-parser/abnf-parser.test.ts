@@ -268,8 +268,56 @@ test("named", function () {
     rest: "",
   });
 
+  deepEqual(repetition(named("test", terminal(0x61))).parse("aaaa"), {
+    result: [{ test: "a" }, { test: "a" }, { test: "a" }, { test: "a" }],
+    rest: "",
+  });
+
   deepEqual(named("test", repetition(named("test", terminal(0x61)))).parse("aaaa"), {
     result: { test: [{ test: "a" }, { test: "a" }, { test: "a" }, { test: "a" }] },
     rest: "",
   });
+
+  deepEqual(
+    concatenate(
+      repetition(named("test", terminal(0x61))),
+      repetition(named("test", terminal(0x62)))
+    ).parse("aaabbb"),
+    {
+      result: [
+        { test: "a" },
+        { test: "a" },
+        { test: "a" },
+        { test: "b" },
+        { test: "b" },
+        { test: "b" },
+      ],
+      rest: "",
+    }
+  );
+
+  deepEqual(
+    concatenate(repetition(named("test", terminal(0x61))), named("test", terminal(0x62))).parse(
+      "aaab"
+    ),
+    {
+      result: [{ test: "a" }, { test: "a" }, { test: "a" }, { test: "b" }],
+      rest: "",
+    }
+  );
+
+  deepEqual(concatenate(repetition(named("test", terminal(0x61))), terminal(0x62)).parse("aaab"), {
+    result: [{ test: "a" }, { test: "a" }, { test: "a" }, "b"],
+    rest: "",
+  });
+
+  deepEqual(
+    concatenate(named("test", terminal(0x61)), repetition(named("test", terminal(0x62)))).parse(
+      "abbb"
+    ),
+    {
+      result: [{ test: "a" }, { test: "b" }, { test: "b" }, { test: "b" }],
+      rest: "",
+    }
+  );
 });
