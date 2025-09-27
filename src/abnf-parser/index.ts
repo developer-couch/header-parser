@@ -1,6 +1,4 @@
-type Result = string;
-
-type ABNFRule = { parse(input: string): { result: Result; rest: string } | null };
+type ABNFRule = { parse(input: string): { result: string; rest: string } | null };
 
 type ABNFRuleOrLiteral = string | number | readonly [number, number] | ABNFRule;
 

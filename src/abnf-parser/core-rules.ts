@@ -1,4 +1,4 @@
-import { alternatives } from "./abnf-parser";
+import { alternatives } from ".";
 
 export const ALPHA = alternatives([0x41, 0x5a], [0x61, 0x7a]);
 

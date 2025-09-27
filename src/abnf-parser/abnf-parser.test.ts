@@ -9,7 +9,7 @@ import {
   rangeAlternatives,
   repetition,
   terminal,
-} from "./abnf-parser";
+} from ".";
 
 suite("ABNF Parser", function () {
   test("terminal", function () {
