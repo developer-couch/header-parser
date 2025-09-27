@@ -2,6 +2,24 @@ type Result = string | { [name: string]: Result } | Result[];
 
 type ABNFRule = { parse(input: string): { result: Result; rest: string } | null };
 
+type ABNFRuleOrLiteral = string | number | readonly [number, number] | ABNFRule;
+
+function literalToRule(rule: ABNFRuleOrLiteral): ABNFRule {
+  if (typeof rule === "number") {
+    return terminal(rule);
+  }
+
+  if (typeof rule === "string") {
+    return literal(rule);
+  }
+
+  if (rule instanceof Array) {
+    return rangeAlternatives(...rule);
+  }
+
+  return rule;
+}
+
 export function terminal(value: number): ABNFRule {
   return {
     parse(input) {
@@ -21,7 +39,7 @@ export function terminal(value: number): ABNFRule {
   };
 }
 
-export function concatenate(...rules: ABNFRule[]): ABNFRule {
+export function concatenate(...rules: ABNFRuleOrLiteral[]): ABNFRule {
   return {
     parse(input) {
       const firstRule = rules[0];
@@ -29,7 +47,7 @@ export function concatenate(...rules: ABNFRule[]): ABNFRule {
         return { result: "", rest: input };
       }
 
-      const firstResult = firstRule.parse(input);
+      const firstResult = literalToRule(firstRule).parse(input);
       if (firstResult === null) {
         return null;
       }
@@ -78,7 +96,7 @@ export function literal(text: string): ABNFRule {
   return concatenate(...rules);
 }
 
-export function alternatives(...rules: ABNFRule[]): ABNFRule {
+export function alternatives(...rules: ABNFRuleOrLiteral[]): ABNFRule {
   return {
     parse(input) {
       const firstRule = rules[0];
@@ -86,7 +104,7 @@ export function alternatives(...rules: ABNFRule[]): ABNFRule {
         return null;
       }
 
-      const firstResult = firstRule.parse(input);
+      const firstResult = literalToRule(firstRule).parse(input);
       if (firstResult === null) {
         return alternatives(...rules.slice(1)).parse(input);
       }
@@ -101,14 +119,14 @@ export function rangeAlternatives(from: number, to: number): ABNFRule {
   return alternatives(...rules);
 }
 
-export function repetition(rule: ABNFRule, min = 0, max = Infinity): ABNFRule {
+export function repetition(rule: ABNFRuleOrLiteral, min = 0, max = Infinity): ABNFRule {
   return {
     parse(input) {
       if (max <= 0) {
         return { result: "", rest: input };
       }
 
-      const firstResult = rule.parse(input);
+      const firstResult = literalToRule(rule).parse(input);
       if (firstResult === null) {
         if (min > 0) {
           return null;
@@ -132,14 +150,14 @@ export function repetition(rule: ABNFRule, min = 0, max = Infinity): ABNFRule {
   };
 }
 
-export function optional(rule: ABNFRule): ABNFRule {
+export function optional(rule: ABNFRuleOrLiteral): ABNFRule {
   return repetition(rule, 0, 1);
 }
 
-export function named(name: string, rule: ABNFRule): ABNFRule {
+export function named(name: string, rule: ABNFRuleOrLiteral): ABNFRule {
   return {
     parse(input) {
-      const result = rule.parse(input);
+      const result = literalToRule(rule).parse(input);
       if (result === null) {
         return null;
       }
@@ -149,10 +167,10 @@ export function named(name: string, rule: ABNFRule): ABNFRule {
   };
 }
 
-export function end(rule: ABNFRule) {
+export function end(rule: ABNFRuleOrLiteral) {
   return {
     parse(input: string) {
-      const result = rule.parse(input);
+      const result = literalToRule(rule).parse(input);
       if (result === null) {
         return null;
       }
