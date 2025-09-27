@@ -65,6 +65,30 @@ suite("ABNF Parser", function () {
     deepEqual(rule.parse("bcd"), null);
   });
 
+  test("literal case insensitiveness", function () {
+    const rule1 = literal("abc");
+
+    deepEqual(rule1.parse("abc"), { result: "abc", rest: "" });
+    deepEqual(rule1.parse("Abc"), { result: "Abc", rest: "" });
+    deepEqual(rule1.parse("aBc"), { result: "aBc", rest: "" });
+    deepEqual(rule1.parse("abC"), { result: "abC", rest: "" });
+    deepEqual(rule1.parse("ABc"), { result: "ABc", rest: "" });
+    deepEqual(rule1.parse("aBC"), { result: "aBC", rest: "" });
+    deepEqual(rule1.parse("AbC"), { result: "AbC", rest: "" });
+    deepEqual(rule1.parse("ABC"), { result: "ABC", rest: "" });
+
+    const rule2 = literal("aBc");
+
+    deepEqual(rule2.parse("abc"), { result: "abc", rest: "" });
+    deepEqual(rule2.parse("Abc"), { result: "Abc", rest: "" });
+    deepEqual(rule2.parse("aBc"), { result: "aBc", rest: "" });
+    deepEqual(rule2.parse("abC"), { result: "abC", rest: "" });
+    deepEqual(rule2.parse("ABc"), { result: "ABc", rest: "" });
+    deepEqual(rule2.parse("aBC"), { result: "aBC", rest: "" });
+    deepEqual(rule2.parse("AbC"), { result: "AbC", rest: "" });
+    deepEqual(rule2.parse("ABC"), { result: "ABC", rest: "" });
+  });
+
   test("empty literal", function () {
     const rule = literal("");
 

@@ -63,8 +63,16 @@ export function concatenate(...rules: ABNFRuleOrLiteral[]): ABNFRule {
 }
 
 export function literal(text: string): ABNFRule {
-  const rules = text.split("").map((char) => terminal(char.codePointAt(0)!));
-  return concatenate(...rules);
+  return concatenate(
+    ...text
+      .split("")
+      .map((char) =>
+        alternatives(
+          terminal(char.toLowerCase().codePointAt(0)!),
+          terminal(char.toUpperCase().codePointAt(0)!)
+        )
+      )
+  );
 }
 
 export function alternatives(...rules: ABNFRuleOrLiteral[]): ABNFRule {
