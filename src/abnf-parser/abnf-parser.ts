@@ -1,4 +1,4 @@
-type Result = string | { [name: string]: Result } | Result[];
+type Result = string;
 
 type ABNFRule = { parse(input: string): { result: Result; rest: string } | null };
 
@@ -57,36 +57,7 @@ export function concatenate(...rules: ABNFRuleOrLiteral[]): ABNFRule {
         return null;
       }
 
-      const rest = nextResult.rest;
-
-      if (typeof firstResult.result === "object") {
-        if (firstResult.result instanceof Array) {
-          if (
-            (typeof nextResult.result === "object" && nextResult.result instanceof Array) ||
-            nextResult.result === ""
-          ) {
-            return { result: [...firstResult.result, ...nextResult.result], rest };
-          } else {
-            return { result: [...firstResult.result, nextResult.result], rest };
-          }
-        } else {
-          if (typeof nextResult.result === "object") {
-            if (nextResult.result instanceof Array) {
-              return { result: [firstResult.result, ...nextResult.result], rest };
-            } else {
-              return { result: { ...firstResult.result, ...nextResult.result }, rest };
-            }
-          } else {
-            return { result: firstResult.result, rest };
-          }
-        }
-      } else {
-        if (typeof nextResult.result === "object") {
-          return { result: nextResult.result, rest };
-        } else {
-          return { result: firstResult.result + nextResult.result, rest };
-        }
-      }
+      return { result: firstResult.result + nextResult.result, rest: nextResult.rest };
     },
   };
 }
@@ -140,31 +111,13 @@ export function repetition(rule: ABNFRuleOrLiteral, min = 0, max = Infinity): AB
         return null;
       }
 
-      const result =
-        typeof firstResult.result === "object"
-          ? [firstResult.result, ...(nextResult.result as Result[])]
-          : firstResult.result + (nextResult.result as string);
-
-      return { result: result, rest: nextResult.rest };
+      return { result: firstResult.result + nextResult.result, rest: nextResult.rest };
     },
   };
 }
 
 export function optional(rule: ABNFRuleOrLiteral): ABNFRule {
   return repetition(rule, 0, 1);
-}
-
-export function named(name: string, rule: ABNFRuleOrLiteral): ABNFRule {
-  return {
-    parse(input) {
-      const result = literalToRule(rule).parse(input);
-      if (result === null) {
-        return null;
-      }
-
-      return { result: { [name]: result.result }, rest: result.rest };
-    },
-  };
 }
 
 export function end(rule: ABNFRuleOrLiteral) {

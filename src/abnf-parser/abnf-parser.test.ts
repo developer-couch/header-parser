@@ -1,323 +1,245 @@
-import { test } from "node:test";
+import { suite, test } from "node:test";
 import { deepEqual } from "node:assert/strict";
 
 import {
   alternatives,
   concatenate,
   literal,
-  named,
   optional,
   rangeAlternatives,
   repetition,
   terminal,
 } from "./abnf-parser";
 
-test("terminal", function () {
-  const rule = terminal(0x61);
+suite("ABNF Parser", function () {
+  test("terminal", function () {
+    const rule = terminal(0x61);
 
-  deepEqual(rule.parse("a"), { result: "a", rest: "" });
-  deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
-  deepEqual(rule.parse("aa"), { result: "a", rest: "a" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("b"), null);
-  deepEqual(rule.parse("ba"), null);
-});
-
-test("concatenate", function () {
-  const rule = concatenate(terminal(0x61), terminal(0x62), terminal(0x63));
-
-  deepEqual(rule.parse("abc"), { result: "abc", rest: "" });
-  deepEqual(rule.parse("abcd"), { result: "abc", rest: "d" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("ab"), null);
-  deepEqual(rule.parse("bcd"), null);
-});
-
-test("deep concatenate", function () {
-  const rule = concatenate(
-    terminal(0x61),
-    concatenate(),
-    concatenate(terminal(0x62), terminal(0x63)),
-    concatenate(terminal(0x64), terminal(0x65), concatenate(terminal(0x66), terminal(0x67)))
-  );
-
-  deepEqual(rule.parse("abcdefg"), { result: "abcdefg", rest: "" });
-  deepEqual(rule.parse("abcdefgh"), { result: "abcdefg", rest: "h" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("abc"), null);
-  deepEqual(rule.parse("bcd"), null);
-});
-
-test("empty concatenate", function () {
-  const rule = concatenate();
-
-  deepEqual(rule.parse(""), { result: "", rest: "" });
-  deepEqual(rule.parse("abc"), { result: "", rest: "abc" });
-});
-
-test("literal", function () {
-  const rule = literal("abc");
-
-  deepEqual(rule.parse("abc"), { result: "abc", rest: "" });
-  deepEqual(rule.parse("abcd"), { result: "abc", rest: "d" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("ab"), null);
-  deepEqual(rule.parse("bcd"), null);
-});
-
-test("empty literal", function () {
-  const rule = literal("");
-
-  deepEqual(rule.parse(""), { result: "", rest: "" });
-  deepEqual(rule.parse("abc"), { result: "", rest: "abc" });
-});
-
-test("mixed concatenate", function () {
-  const rule = concatenate(literal("ab"), terminal(0x63));
-
-  deepEqual(rule.parse("abc"), { result: "abc", rest: "" });
-  deepEqual(rule.parse("abcd"), { result: "abc", rest: "d" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("ab"), null);
-  deepEqual(rule.parse("bcd"), null);
-});
-
-test("alternatives", function () {
-  const rule = alternatives(terminal(0x61), terminal(0x62), terminal(0x63));
-
-  deepEqual(rule.parse("a"), { result: "a", rest: "" });
-  deepEqual(rule.parse("b"), { result: "b", rest: "" });
-  deepEqual(rule.parse("c"), { result: "c", rest: "" });
-  deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("d"), null);
-});
-
-test("deep alternatives", function () {
-  const rule = alternatives(
-    terminal(0x61),
-    alternatives(),
-    alternatives(terminal(0x62), terminal(0x63)),
-    alternatives(terminal(0x64), terminal(0x65), alternatives(terminal(0x66), terminal(0x67)))
-  );
-
-  deepEqual(rule.parse("a"), { result: "a", rest: "" });
-  deepEqual(rule.parse("b"), { result: "b", rest: "" });
-  deepEqual(rule.parse("c"), { result: "c", rest: "" });
-  deepEqual(rule.parse("d"), { result: "d", rest: "" });
-  deepEqual(rule.parse("e"), { result: "e", rest: "" });
-  deepEqual(rule.parse("f"), { result: "f", rest: "" });
-  deepEqual(rule.parse("g"), { result: "g", rest: "" });
-  deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("h"), null);
-});
-
-test("empty alternatives", function () {
-  const rule = alternatives();
-
-  deepEqual(rule.parse("a"), null);
-  deepEqual(rule.parse(""), null);
-});
-
-test("concatenate alternatives", function () {
-  const rule = concatenate(
-    alternatives(terminal(0x61), terminal(0x62), terminal(0x63)),
-    alternatives(terminal(0x64), terminal(0x65), terminal(0x66))
-  );
-
-  deepEqual(rule.parse("ad"), { result: "ad", rest: "" });
-  deepEqual(rule.parse("ae"), { result: "ae", rest: "" });
-  deepEqual(rule.parse("af"), { result: "af", rest: "" });
-  deepEqual(rule.parse("bd"), { result: "bd", rest: "" });
-  deepEqual(rule.parse("be"), { result: "be", rest: "" });
-  deepEqual(rule.parse("bf"), { result: "bf", rest: "" });
-  deepEqual(rule.parse("cd"), { result: "cd", rest: "" });
-  deepEqual(rule.parse("ce"), { result: "ce", rest: "" });
-  deepEqual(rule.parse("cf"), { result: "cf", rest: "" });
-  deepEqual(rule.parse("ada"), { result: "ad", rest: "a" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("da"), null);
-  deepEqual(rule.parse("dd"), null);
-  deepEqual(rule.parse("da"), null);
-});
-
-test("concatenate empty alternatives", function () {
-  const rule = concatenate(alternatives(), alternatives());
-
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("abc"), null);
-});
-
-test("alternative concatenates", function () {
-  const rule = alternatives(
-    concatenate(terminal(0x61), terminal(0x62), terminal(0x63)),
-    concatenate(terminal(0x64), terminal(0x65), terminal(0x66))
-  );
-
-  deepEqual(rule.parse("abc"), { result: "abc", rest: "" });
-  deepEqual(rule.parse("def"), { result: "def", rest: "" });
-  deepEqual(rule.parse("abcdef"), { result: "abc", rest: "def" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("bcd"), null);
-});
-
-test("alternative empty concatenates", function () {
-  const rule = alternatives(concatenate(), concatenate());
-
-  deepEqual(rule.parse(""), { result: "", rest: "" });
-  deepEqual(rule.parse("abc"), { result: "", rest: "abc" });
-});
-
-test("range alternatives", function () {
-  const rule = rangeAlternatives(0x61, 0x63);
-
-  deepEqual(rule.parse("a"), { result: "a", rest: "" });
-  deepEqual(rule.parse("b"), { result: "b", rest: "" });
-  deepEqual(rule.parse("c"), { result: "c", rest: "" });
-  deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("d"), null);
-});
-
-test("repetition", function () {
-  const rule = repetition(terminal(0x61));
-
-  deepEqual(rule.parse("a"), { result: "a", rest: "" });
-  deepEqual(rule.parse("aaaaaa"), { result: "aaaaaa", rest: "" });
-  deepEqual(rule.parse("aaaaab"), { result: "aaaaa", rest: "b" });
-  deepEqual(rule.parse(""), { result: "", rest: "" });
-  deepEqual(rule.parse("b"), { result: "", rest: "b" });
-});
-
-test("repetition with min", function () {
-  const rule = repetition(terminal(0x61), 3);
-
-  deepEqual(rule.parse("aaa"), { result: "aaa", rest: "" });
-  deepEqual(rule.parse("aaaaaa"), { result: "aaaaaa", rest: "" });
-  deepEqual(rule.parse("aaaaab"), { result: "aaaaa", rest: "b" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("aa"), null);
-  deepEqual(rule.parse("baaa"), null);
-});
-
-test("repetition with max", function () {
-  const rule = repetition(terminal(0x61), undefined, 3);
-
-  deepEqual(rule.parse("aa"), { result: "aa", rest: "" });
-  deepEqual(rule.parse("aaa"), { result: "aaa", rest: "" });
-  deepEqual(rule.parse("aaaa"), { result: "aaa", rest: "a" });
-  deepEqual(rule.parse("aaab"), { result: "aaa", rest: "b" });
-  deepEqual(rule.parse("aab"), { result: "aa", rest: "b" });
-  deepEqual(rule.parse(""), { result: "", rest: "" });
-});
-
-test("repetition with min and max", function () {
-  const rule = repetition(terminal(0x61), 2, 4);
-
-  deepEqual(rule.parse("aaa"), { result: "aaa", rest: "" });
-  deepEqual(rule.parse("aa"), { result: "aa", rest: "" });
-  deepEqual(rule.parse("aaaa"), { result: "aaaa", rest: "" });
-  deepEqual(rule.parse("aaaaa"), { result: "aaaa", rest: "a" });
-  deepEqual(rule.parse("aaab"), { result: "aaa", rest: "b" });
-  deepEqual(rule.parse(""), null);
-  deepEqual(rule.parse("a"), null);
-  deepEqual(rule.parse("ab"), null);
-});
-
-test("exact repetition", function () {
-  const rule = repetition(terminal(0x61), 3, 3);
-
-  deepEqual(rule.parse("aaa"), { result: "aaa", rest: "" });
-  deepEqual(rule.parse("aaaa"), { result: "aaa", rest: "a" });
-  deepEqual(rule.parse("aa"), null);
-});
-
-test("optional", function () {
-  const rule = optional(terminal(0x61));
-
-  deepEqual(rule.parse("a"), { result: "a", rest: "" });
-  deepEqual(rule.parse("aa"), { result: "a", rest: "a" });
-  deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
-  deepEqual(rule.parse(""), { result: "", rest: "" });
-  deepEqual(rule.parse("b"), { result: "", rest: "b" });
-});
-
-test("named", function () {
-  deepEqual(named("a", terminal(0x61)).parse("a"), { result: { a: "a" }, rest: "" });
-
-  deepEqual(
-    named("test", concatenate(terminal(0x61), terminal(0x62), terminal(0x63))).parse("abc"),
-    { result: { test: "abc" }, rest: "" }
-  );
-
-  deepEqual(
-    named(
-      "test",
-      concatenate(
-        terminal(0x61),
-        named("test", alternatives(terminal(0x62), terminal(0x63))),
-        terminal(0x64)
-      )
-    ).parse("abd"),
-    { result: { test: { test: "b" } }, rest: "" }
-  );
-
-  deepEqual(named("test", repetition(terminal(0x61))).parse("aaaa"), {
-    result: { test: "aaaa" },
-    rest: "",
+    deepEqual(rule.parse("a"), { result: "a", rest: "" });
+    deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
+    deepEqual(rule.parse("aa"), { result: "a", rest: "a" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("b"), null);
+    deepEqual(rule.parse("ba"), null);
   });
 
-  deepEqual(repetition(named("test", terminal(0x61))).parse("aaaa"), {
-    result: [{ test: "a" }, { test: "a" }, { test: "a" }, { test: "a" }],
-    rest: "",
+  test("concatenate", function () {
+    const rule = concatenate(terminal(0x61), terminal(0x62), terminal(0x63));
+
+    deepEqual(rule.parse("abc"), { result: "abc", rest: "" });
+    deepEqual(rule.parse("abcd"), { result: "abc", rest: "d" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("ab"), null);
+    deepEqual(rule.parse("bcd"), null);
   });
 
-  deepEqual(named("test", repetition(named("test", terminal(0x61)))).parse("aaaa"), {
-    result: { test: [{ test: "a" }, { test: "a" }, { test: "a" }, { test: "a" }] },
-    rest: "",
+  test("deep concatenate", function () {
+    const rule = concatenate(
+      terminal(0x61),
+      concatenate(),
+      concatenate(terminal(0x62), terminal(0x63)),
+      concatenate(terminal(0x64), terminal(0x65), concatenate(terminal(0x66), terminal(0x67)))
+    );
+
+    deepEqual(rule.parse("abcdefg"), { result: "abcdefg", rest: "" });
+    deepEqual(rule.parse("abcdefgh"), { result: "abcdefg", rest: "h" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("abc"), null);
+    deepEqual(rule.parse("bcd"), null);
   });
 
-  deepEqual(
-    concatenate(
-      repetition(named("test", terminal(0x61))),
-      repetition(named("test", terminal(0x62)))
-    ).parse("aaabbb"),
-    {
-      result: [
-        { test: "a" },
-        { test: "a" },
-        { test: "a" },
-        { test: "b" },
-        { test: "b" },
-        { test: "b" },
-      ],
-      rest: "",
-    }
-  );
+  test("empty concatenate", function () {
+    const rule = concatenate();
 
-  deepEqual(
-    concatenate(repetition(named("test", terminal(0x61))), named("test", terminal(0x62))).parse(
-      "aaab"
-    ),
-    {
-      result: [{ test: "a" }, { test: "a" }, { test: "a" }, { test: "b" }],
-      rest: "",
-    }
-  );
-
-  deepEqual(concatenate(repetition(named("test", terminal(0x61))), terminal(0x62)).parse("aaab"), {
-    result: [{ test: "a" }, { test: "a" }, { test: "a" }, "b"],
-    rest: "",
+    deepEqual(rule.parse(""), { result: "", rest: "" });
+    deepEqual(rule.parse("abc"), { result: "", rest: "abc" });
   });
 
-  deepEqual(
-    concatenate(named("test", terminal(0x61)), repetition(named("test", terminal(0x62)))).parse(
-      "abbb"
-    ),
-    {
-      result: [{ test: "a" }, { test: "b" }, { test: "b" }, { test: "b" }],
-      rest: "",
-    }
-  );
+  test("literal", function () {
+    const rule = literal("abc");
+
+    deepEqual(rule.parse("abc"), { result: "abc", rest: "" });
+    deepEqual(rule.parse("abcd"), { result: "abc", rest: "d" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("ab"), null);
+    deepEqual(rule.parse("bcd"), null);
+  });
+
+  test("empty literal", function () {
+    const rule = literal("");
+
+    deepEqual(rule.parse(""), { result: "", rest: "" });
+    deepEqual(rule.parse("abc"), { result: "", rest: "abc" });
+  });
+
+  test("mixed concatenate", function () {
+    const rule = concatenate(literal("ab"), terminal(0x63));
+
+    deepEqual(rule.parse("abc"), { result: "abc", rest: "" });
+    deepEqual(rule.parse("abcd"), { result: "abc", rest: "d" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("ab"), null);
+    deepEqual(rule.parse("bcd"), null);
+  });
+
+  test("alternatives", function () {
+    const rule = alternatives(terminal(0x61), terminal(0x62), terminal(0x63));
+
+    deepEqual(rule.parse("a"), { result: "a", rest: "" });
+    deepEqual(rule.parse("b"), { result: "b", rest: "" });
+    deepEqual(rule.parse("c"), { result: "c", rest: "" });
+    deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("d"), null);
+  });
+
+  test("deep alternatives", function () {
+    const rule = alternatives(
+      terminal(0x61),
+      alternatives(),
+      alternatives(terminal(0x62), terminal(0x63)),
+      alternatives(terminal(0x64), terminal(0x65), alternatives(terminal(0x66), terminal(0x67)))
+    );
+
+    deepEqual(rule.parse("a"), { result: "a", rest: "" });
+    deepEqual(rule.parse("b"), { result: "b", rest: "" });
+    deepEqual(rule.parse("c"), { result: "c", rest: "" });
+    deepEqual(rule.parse("d"), { result: "d", rest: "" });
+    deepEqual(rule.parse("e"), { result: "e", rest: "" });
+    deepEqual(rule.parse("f"), { result: "f", rest: "" });
+    deepEqual(rule.parse("g"), { result: "g", rest: "" });
+    deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("h"), null);
+  });
+
+  test("empty alternatives", function () {
+    const rule = alternatives();
+
+    deepEqual(rule.parse("a"), null);
+    deepEqual(rule.parse(""), null);
+  });
+
+  test("concatenate alternatives", function () {
+    const rule = concatenate(
+      alternatives(terminal(0x61), terminal(0x62), terminal(0x63)),
+      alternatives(terminal(0x64), terminal(0x65), terminal(0x66))
+    );
+
+    deepEqual(rule.parse("ad"), { result: "ad", rest: "" });
+    deepEqual(rule.parse("ae"), { result: "ae", rest: "" });
+    deepEqual(rule.parse("af"), { result: "af", rest: "" });
+    deepEqual(rule.parse("bd"), { result: "bd", rest: "" });
+    deepEqual(rule.parse("be"), { result: "be", rest: "" });
+    deepEqual(rule.parse("bf"), { result: "bf", rest: "" });
+    deepEqual(rule.parse("cd"), { result: "cd", rest: "" });
+    deepEqual(rule.parse("ce"), { result: "ce", rest: "" });
+    deepEqual(rule.parse("cf"), { result: "cf", rest: "" });
+    deepEqual(rule.parse("ada"), { result: "ad", rest: "a" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("da"), null);
+    deepEqual(rule.parse("dd"), null);
+    deepEqual(rule.parse("da"), null);
+  });
+
+  test("concatenate empty alternatives", function () {
+    const rule = concatenate(alternatives(), alternatives());
+
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("abc"), null);
+  });
+
+  test("alternative concatenates", function () {
+    const rule = alternatives(
+      concatenate(terminal(0x61), terminal(0x62), terminal(0x63)),
+      concatenate(terminal(0x64), terminal(0x65), terminal(0x66))
+    );
+
+    deepEqual(rule.parse("abc"), { result: "abc", rest: "" });
+    deepEqual(rule.parse("def"), { result: "def", rest: "" });
+    deepEqual(rule.parse("abcdef"), { result: "abc", rest: "def" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("bcd"), null);
+  });
+
+  test("alternative empty concatenates", function () {
+    const rule = alternatives(concatenate(), concatenate());
+
+    deepEqual(rule.parse(""), { result: "", rest: "" });
+    deepEqual(rule.parse("abc"), { result: "", rest: "abc" });
+  });
+
+  test("range alternatives", function () {
+    const rule = rangeAlternatives(0x61, 0x63);
+
+    deepEqual(rule.parse("a"), { result: "a", rest: "" });
+    deepEqual(rule.parse("b"), { result: "b", rest: "" });
+    deepEqual(rule.parse("c"), { result: "c", rest: "" });
+    deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("d"), null);
+  });
+
+  test("repetition", function () {
+    const rule = repetition(terminal(0x61));
+
+    deepEqual(rule.parse("a"), { result: "a", rest: "" });
+    deepEqual(rule.parse("aaaaaa"), { result: "aaaaaa", rest: "" });
+    deepEqual(rule.parse("aaaaab"), { result: "aaaaa", rest: "b" });
+    deepEqual(rule.parse(""), { result: "", rest: "" });
+    deepEqual(rule.parse("b"), { result: "", rest: "b" });
+  });
+
+  test("repetition with min", function () {
+    const rule = repetition(terminal(0x61), 3);
+
+    deepEqual(rule.parse("aaa"), { result: "aaa", rest: "" });
+    deepEqual(rule.parse("aaaaaa"), { result: "aaaaaa", rest: "" });
+    deepEqual(rule.parse("aaaaab"), { result: "aaaaa", rest: "b" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("aa"), null);
+    deepEqual(rule.parse("baaa"), null);
+  });
+
+  test("repetition with max", function () {
+    const rule = repetition(terminal(0x61), undefined, 3);
+
+    deepEqual(rule.parse("aa"), { result: "aa", rest: "" });
+    deepEqual(rule.parse("aaa"), { result: "aaa", rest: "" });
+    deepEqual(rule.parse("aaaa"), { result: "aaa", rest: "a" });
+    deepEqual(rule.parse("aaab"), { result: "aaa", rest: "b" });
+    deepEqual(rule.parse("aab"), { result: "aa", rest: "b" });
+    deepEqual(rule.parse(""), { result: "", rest: "" });
+  });
+
+  test("repetition with min and max", function () {
+    const rule = repetition(terminal(0x61), 2, 4);
+
+    deepEqual(rule.parse("aaa"), { result: "aaa", rest: "" });
+    deepEqual(rule.parse("aa"), { result: "aa", rest: "" });
+    deepEqual(rule.parse("aaaa"), { result: "aaaa", rest: "" });
+    deepEqual(rule.parse("aaaaa"), { result: "aaaa", rest: "a" });
+    deepEqual(rule.parse("aaab"), { result: "aaa", rest: "b" });
+    deepEqual(rule.parse(""), null);
+    deepEqual(rule.parse("a"), null);
+    deepEqual(rule.parse("ab"), null);
+  });
+
+  test("exact repetition", function () {
+    const rule = repetition(terminal(0x61), 3, 3);
+
+    deepEqual(rule.parse("aaa"), { result: "aaa", rest: "" });
+    deepEqual(rule.parse("aaaa"), { result: "aaa", rest: "a" });
+    deepEqual(rule.parse("aa"), null);
+  });
+
+  test("optional", function () {
+    const rule = optional(terminal(0x61));
+
+    deepEqual(rule.parse("a"), { result: "a", rest: "" });
+    deepEqual(rule.parse("aa"), { result: "a", rest: "a" });
+    deepEqual(rule.parse("ab"), { result: "a", rest: "b" });
+    deepEqual(rule.parse(""), { result: "", rest: "" });
+    deepEqual(rule.parse("b"), { result: "", rest: "b" });
+  });
 });
