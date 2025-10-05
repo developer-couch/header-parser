@@ -1,6 +1,12 @@
 {
+  "name": "header-parsers",
+  "version": "0.0.1",
+  "files": [
+    "./dist"
+  ],
   "scripts": {
-    "test": "node --require ts-node/register --test './src/**/*.test.ts'"
+    "test": "node --require ts-node/register --test './src/**/*.test.ts'",
+    "build": "tsc"
   },
   "dependencies": {
     "prettier": "^3.6.2",
