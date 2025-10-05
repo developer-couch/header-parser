@@ -11,6 +11,7 @@
   "files": [
     "./dist"
   ],
+  "repository": "https://github.com/developer-couch/header-parser",
   "scripts": {
     "test": "node --require ts-node/register --test './src/**/*.test.ts'",
     "build": "tsc"
