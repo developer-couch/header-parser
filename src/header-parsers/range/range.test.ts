@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { parseRange } from ".";
 
-suite("parseRange", function () {
+suite("Range", function () {
   test("returns all the passed ranges as a javascript object", () => {
     const range = parseRange(
       "bytes=20-100,40-50,30-,-80,-10,other-range?(123,another-range123df:[]"

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { parseDate } from ".";
 
-suite("parseDate", function () {
+suite("Date", function () {
   test("returns the passed date as a javascript Date object", () => {
     const date = parseDate("Sun, 06 Nov 1994 08:49:37 GMT");
 

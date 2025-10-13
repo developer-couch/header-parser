@@ -56,6 +56,19 @@ parseContentType("application/json; charset=utf-8");
 // [Out]: { type: "application", subtype: "json", parameters: { charset: "utf-8" } }
 ```
 
+### Content-Length
+
+```ts
+function parseContentLength(input: string): number | null;
+```
+
+#### Example
+
+```ts
+parseContentLength("28374");
+// [Out]: 28374
+```
+
 ### Authorization
 
 ```ts

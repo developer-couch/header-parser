@@ -44,8 +44,6 @@ export function parseAuthorization(input: string): Credentials | null {
     return { scheme, params: params };
   }
 
-  console.log(scheme, nameValuePairs);
-
   return {
     scheme,
     params: parseNameValuePairs(nameValuePairs.split(/\s*,\s*/)),
