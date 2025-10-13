@@ -1,6 +1,7 @@
 import { alternatives, concatenate, end, optional, repetition } from "../../abnf-parser";
 import { SP } from "../../abnf-parser/core-rules";
 import { BWS, OWS, quotedPair, quotedString, token, token68 } from "../core-rules";
+import { parseNameValuePairs } from "../utils";
 
 export interface Credentials {
   scheme: string;
@@ -47,34 +48,6 @@ export function parseAuthorization(input: string): Credentials | null {
 
   return {
     scheme,
-    params: Object.fromEntries(
-      nameValuePairs.split(/\s*,\s*/).map(function (param) {
-        const i = param.indexOf("=");
-        const name = param.slice(0, i).trimEnd();
-        const value = param.slice(i + 1).trimStart();
-
-        const parsedToken = end(token).parse(value);
-        if (parsedToken !== null) {
-          return [name, parsedToken];
-        }
-
-        return [
-          name,
-          value
-            .slice(1, value.length - 1)
-            .split("")
-            .map(function (char, i, value) {
-              const parsedQuotedPair = end(quotedPair).parse(value.slice(i, i + 2).join(""));
-              if (parsedQuotedPair === null) {
-                return char;
-              }
-
-              value.splice(i + 1, 1);
-              return parsedQuotedPair[1];
-            })
-            .join(""),
-        ];
-      })
-    ),
+    params: parseNameValuePairs(nameValuePairs.split(/\s*,\s*/)),
   };
 }

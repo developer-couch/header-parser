@@ -37,6 +37,25 @@ parseHost("example.com:8080");
 // [Out]: { host: "example.com", port: 8080 }
 ```
 
+### Content-Type
+
+```ts
+interface MediaType {
+  type: string;
+  subtype: string;
+  parameters: Record<string, string> | null;
+}
+
+function parseContentType(input: string): MediaType | null;
+```
+
+#### Example
+
+```ts
+parseContentType("application/json; charset=utf-8");
+// [Out]: { type: "application", subtype: "json", parameters: { charset: "utf-8" } }
+```
+
 ### Authorization
 
 ```ts

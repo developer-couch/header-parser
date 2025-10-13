@@ -1,6 +1,6 @@
 {
   "name": "header-parsers",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "keywords": [
     "http",
     "semantics",
@@ -8,6 +8,7 @@
     "parser",
     "date",
     "host",
+    "content-type",
     "authorization",
     "range"
   ],
