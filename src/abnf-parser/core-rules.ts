@@ -7,3 +7,5 @@ export const DIGIT = [0x30, 0x39] as const;
 export const SP = 0x20;
 
 export const HTAB = 0x09;
+
+export const HEXDIG = alternatives(DIGIT, "A", "B", "C", "D", "E", "F");
