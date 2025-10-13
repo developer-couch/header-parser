@@ -1,6 +1,6 @@
 {
   "name": "header-parsers",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "keywords": [
     "http",
     "semantics",
@@ -10,6 +10,7 @@
     "date"
   ],
   "files": [
+    "./README.md",
     "./dist"
   ],
   "repository": "https://github.com/developer-couch/header-parser",
