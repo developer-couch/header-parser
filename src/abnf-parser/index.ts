@@ -82,11 +82,17 @@ export function alternatives(...rules: ABNFRuleOrLiteral[]): ABNFRule {
       }
 
       const firstResult = literalToRule(firstRule).parse(input);
+      const nextResult = alternatives(...rules.slice(1)).parse(input);
+
       if (firstResult === null) {
-        return alternatives(...rules.slice(1)).parse(input);
+        return nextResult;
       }
 
-      return firstResult;
+      if (nextResult === null) {
+        return firstResult;
+      }
+
+      return firstResult.rest.length <= nextResult.rest.length ? firstResult : nextResult;
     },
   };
 }
