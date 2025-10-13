@@ -1,6 +1,6 @@
 {
   "name": "header-parsers",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "keywords": [
     "http",
     "semantics",
@@ -13,6 +13,7 @@
     "./README.md",
     "./dist"
   ],
+  "main": "./dist/index.js",
   "repository": "https://github.com/developer-couch/header-parser",
   "scripts": {
     "test": "node --require ts-node/register --test './src/**/*.test.ts'",
