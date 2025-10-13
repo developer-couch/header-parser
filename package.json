@@ -1,12 +1,13 @@
 {
   "name": "header-parsers",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "keywords": [
     "http",
+    "semantics",
     "header",
-    "range",
     "parser",
-    "semantics"
+    "range",
+    "date"
   ],
   "files": [
     "./dist"
