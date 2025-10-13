@@ -37,6 +37,24 @@ parseHost("example.com:8080");
 // [Out]: { host: "example.com", port: 8080 }
 ```
 
+### Authorization
+
+```ts
+interface Credentials {
+  scheme: string;
+  params: Record<string, string> | string | null;
+}
+
+function parseAuthorization(input: string): Credentials | null;
+```
+
+#### Example
+
+```ts
+parseAuthorization('AuthScheme param1=value, param2="quoted \\\"value\\\"\"');
+// [Out]: { scheme: "AuthScheme", params: { param1: "value", param2: "quoted \"value\"" } }
+```
+
 ### Range
 
 ```ts
