@@ -2,7 +2,79 @@
 
 A collection of TypeScript header parsers, compliant with [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110).
 
-**Supported parsers:**
+## Supported Header Parsers
 
-1. Date
-2. Range
+All parsers receive a string (the header value) and output either an object representing the header value, or null if the syntax is invalid.
+
+### Date
+
+```ts
+function parseDate(input: string): Date | null;
+```
+
+#### Example
+
+```ts
+parseDate("Sun, 06 Nov 1994 08:49:37 GMT");
+// [Out]: Date(1994-11-06T08:49:37.000Z)
+```
+
+### Host
+
+```ts
+interface Host {
+  host: string;
+  port: number | null;
+}
+
+function parseHost(input: string): Host | null;
+```
+
+#### Example
+
+```ts
+parseHost("example.com:8080");
+// [Out]: { host: "example.com", port: 8080 }
+```
+
+### Range
+
+```ts
+interface IntRange {
+  type: "int";
+  firstPos: number;
+  lastPos: number | null;
+}
+
+interface SuffixRange {
+  type: "suffix";
+  length: number;
+}
+
+interface OtherRange {
+  type: "other";
+  spec: string;
+}
+
+type RangeSpec = IntRange | SuffixRange | OtherRange;
+
+interface RangesSpecifier {
+  unit: string;
+  set: RangeSpec[];
+}
+
+function parseRange(input: string): null;
+```
+
+#### Example
+
+```ts
+parseRange("bytes=0-100, -100");
+// [Out]: {
+//   unit: "bytes",
+//   set: [
+//     { type: "int", startPos: 0, endPos: 100 },
+//     { type: "suffix", length: 100 }
+//   ]
+// }
+```
