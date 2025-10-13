@@ -77,9 +77,5 @@ export function parseDate(input: string): Date | null {
   const parsedAsctime = end(asctimeDate).parse(parsed);
   const date = parsedAsctime != null ? new Date(`${parsedAsctime} GMT`) : new Date(parsed);
 
-  if (Number.isNaN(date.valueOf())) {
-    return null;
-  }
-
   return date;
 }

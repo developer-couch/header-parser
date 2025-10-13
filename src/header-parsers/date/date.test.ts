@@ -28,9 +28,9 @@ suite("parseDate", function () {
     assert.equal(date, null);
   });
 
-  test("returns null if format is valid but date is invalid", () => {
+  test("returns Invalid Date if format is valid but date is invalid", () => {
     const date = parseDate("Sun, 06 Nov 1994 08:72:37 GMT");
 
-    assert.equal(date, null);
+    assert.deepEqual(date?.valueOf(), NaN);
   });
 });
