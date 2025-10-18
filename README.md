@@ -56,6 +56,19 @@ parseContentType("application/json; charset=utf-8");
 // [Out]: { type: "application", subtype: "json", parameters: { charset: "utf-8" } }
 ```
 
+### Content-Encoding
+
+```ts
+function parseContentEncoding(input: string): string[] | null;
+```
+
+#### Example
+
+```ts
+parseContentEncoding("compress, deflate, gzip");
+// [Out]: ["compress", "deflate", "gzip"]
+```
+
 ### Content-Length
 
 ```ts
